@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a0c02">
+<title>Rutina Herrero</title>
+<link rel="icon" type="image/png" href="./icono.png">
+<link rel="manifest" href="./manifest.json">
+<style>
+  body { 
+    font-family: system-ui, -apple-system, sans-serif; 
+    background-color: #0d0602; 
+    color: #f8fafc; 
+    margin: 0; 
+    padding: 16px; 
+  }
+  .card { 
+    background: #1f0f04; 
+    padding: 14px; 
+    border-radius: 14px; 
+    margin-bottom: 14px; 
+    border: 1.5px solid #7c2d12; 
+  }
+  label { font-size: 12px; color: #f97316; display: block; margin-bottom: 4px; font-weight: 800; text-transform: uppercase; }
+  select, input { background-color: #050201; color: #fff; border: 1.5px solid #7c2d12; padding: 10px; border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 14px; }
+  .btn { background: linear-gradient(135deg, #ea580c, #7c2d12); color: white; border: 1px solid #fd5e09; padding: 14px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <label>Día de Entreno</label>
+  <select id="daySelect" onchange="renderRoutines()">
+    <option value="">-- Seleccionar Día --</option>
+    <option value="1">DÍA UNO - Hombro, Dorsal, Pectoral, Abs</option>
+    <option value="2">DÍA DOS - Pierna, Femoral, Bíceps, Tríceps</option>
+  </select>
+</div>
+
+<div id="exercisesContainer">
+  <p style="text-align:center; color:#a1a1aa;">👆 Selecciona un día arriba para cargar la rutina.</p>
+</div>
+
+<script>
+var routines = {
+  "1": [
+    "1. Elevaciones laterales con mancuernas (4x12)",
+    "2. Press militar sentado en máquina (4x12)",
+    "3. Contractora inversa / Pájaro (4x12)",
+    "4. Remo bajo sentado en polea (4x12)",
+    "5. Jalón al pecho en máquina (4x12)",
+    "6. Press inclinado en máquina (4x12)",
+    "7. Plancha abdominal (3x20s)"
+  ],
+  "2": [
+    "1. Prensa de piernas sentado (4x12)",
+    "2. Extensiones de cuádriceps (4x12)",
+    "3. Femoral tumbado (4x12)",
+    "4. Curl de bíceps con mancuernas (4x12)",
+    "5. Extensión de tríceps en polea (4x12)"
+  ]
+};
+
+function renderRoutines() {
+  var day = document.getElementById('daySelect').value;
+  var container = document.getElementById('exercisesContainer');
+  container.innerHTML = '';
+  if (!day || !routines[day]) {
+    container.innerHTML = '<p style="text-align:center; color:#a1a1aa;">👆 Selecciona un día arriba para cargar la rutina.</p>';
+    return;
+  }
+  var list = routines[day];
+  for (var i = 0; i < list.length; i++) {
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = '<strong style="color:#fd5e09;">' + list[i] + '</strong>';
+    container.appendChild(card);
+  }
+}
+</script>
+</body>
+</html>
