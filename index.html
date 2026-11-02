@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a0c02">
+<title>Mi Rutina</title>
+
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" href="./icono.png">
+<link rel="apple-touch-icon" href="./icono.png">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  * { box-sizing: border-box; }
+  body { 
+    font-family: system-ui, -apple-system, sans-serif; 
+    background-color: #0d0602;
+    background-image: linear-gradient(rgba(10, 5, 1, 0.88), rgba(20, 10, 2, 0.94)), url('./icono.png');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    color: #f8fafc; 
+    margin: 0; 
+    padding: 8px; 
+    padding-bottom: 80px; 
+  }
+
+  .btn-fullscreen { 
+    position: fixed; 
+    top: 8px; 
+    left: 8px; 
+    background: transparent; 
+    color: rgba(255, 255, 255, 0.2); 
+    border: none; 
+    width: 35px; 
+    height: 35px; 
+    font-size: 18px; 
+    cursor: pointer; 
+    z-index: 99; 
+  }
+
+  .logo-container {
+    width: 100%;
+    aspect-ratio: 1 / 1.15;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    border-radius: 16px;
+    border: 2px solid #fd5e09;
+    box-shadow: 0 4px 20px rgba(253, 94, 9, 0.4);
+    overflow: hidden;
+    background-color: #050201;
+    position: relative;
+  }
+
+  .logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+
+  .header-actions-left { position: absolute; bottom: 12px; left: 12px; z-index: 2; }
+  .header-actions-right { position: absolute; bottom: 12px; right: 12px; z-index: 2; }
+
+  .sticky-player {
+    position: sticky;
+    top: 4px;
+    z-index: 90;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.98);
+    border: 2px solid #fd5e09 !important;
+    border-radius: 14px;
+    margin-top: 2px;
+    backdrop-filter: blur(8px);
+    background: rgba(10, 5, 1, 0.95);
+  }
+
+  .marquee-container {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .marquee-text {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 14s linear infinite;
+    font-size: 15px;
+    font-weight: 800;
+    color: #f59e0b;
+    white-space: nowrap;
+  }
+
+  @keyframes marquee {
+    0%   { transform: translate(0, 0); }
+    100% { transform: translate(-100%, 0); }
+  }
+
+  .player-btn-grid {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .player-btn-grid .btn-link {
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+    padding: 8px 2px;
+  }
+
+  .card { 
+    background: linear-gradient(145deg, rgba(31, 15, 4, 0.95), rgba(13, 6, 2, 0.95)); 
+    padding: 12px 14px; 
+    border-radius: 14px; 
+    margin-bottom: 10px; 
+    border: 1.5px solid #7c2d12; 
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.9), 0 4px 10px rgba(0,0,0,0.8);
+    scroll-margin-top: 140px;
+  }
+  
+  label { font-size: 13px; color: #f97316; display: block; margin-bottom: 3px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; text-shadow: 1px 1px 2px #000; }
+  select, input { background-color: #050201; color: #fff; border: 1.5px solid #7c2d12; padding: 8px 10px; border-radius: 9px; width: 100%; font-size: 15px; font-weight: 700; }
+  
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; align-items: center; }
+  
+  .counter { display: flex; align-items: center; background-color: #050201; border-radius: 9px; border: 1.5px solid #7c2d12; }
+  .counter button { width: 42px; height: 40px; background: #1f0f04; color: #fd5e09; border: none; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 7px; }
+  .counter input { border: none; text-align: center; color: #fd5e09; font-size: 18px; font-weight: 800; padding: 2px; }
+  
+  .btn { background: linear-gradient(135deg, #ea580c, #7c2d12); color: white; border: 2px solid #fd5e09; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; font-size: 15px; text-shadow: 2px 2px 3px #000; }
+  .btn-save { background: linear-gradient(135deg, #15803d, #14532d); border-color: #22c55e; }
+  .btn-exit { background: linear-gradient(135deg, #b91c1c, #7f1d1d); border-color: #f87171; }
+  
+  .btn-link { 
+    background-color: rgba(253, 94, 9, 0.15); 
+    color: #fd5e09; 
+    border: 1px solid rgba(253, 94, 9, 0.3); 
+    text-decoration: none; 
+    padding: 6px 8px; 
+    border-radius: 8px; 
+    font-size: 12px; 
+    font-weight: 800; 
+    cursor: pointer; 
+    white-space: nowrap; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 4px; 
+  }
+
+  .btn-series-trigger {
+    background: linear-gradient(135deg, #374151, #1f2937);
+    color: #f8fafc;
+    border: 1px solid #fd5e09;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .badge-series-status {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-block;
+    margin-top: 6px;
+  }
+
+  .card-timer-box {
+    display: none;
+    margin-top: 10px;
+    margin-bottom: 6px;
+    padding: 8px 10px;
+    background: rgba(5, 2, 1, 0.95);
+    border: 1.5px solid #fd5e09;
+    border-radius: 10px;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .card-timer-clock {
+    font-size: 36px;
+    font-weight: 900;
+    color: #22c55e;
+    font-family: monospace;
+    line-height: 1;
+  }
+
+  .inline-video-wrapper {
+    margin: 8px -14px -2px -14px;
+    width: calc(100% + 28px);
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    background-color: #000;
+    border-top: 1.5px solid #fd5e09;
+    border-bottom: 1.5px solid #fd5e09;
+    display: none;
+  }
+  
+  .inline-video-wrapper video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 100; padding: 12px; align-items: center; justify-content: center; }
+  .modal-content { background: #0c0401; border: 2px solid #fd5e09; border-radius: 18px; padding: 16px; max-width: 650px; width: 100%; max-height: 88vh; overflow-y: auto; }
+  .tab-btn { background: #050201; border: 1.5px solid #7c2d12; color: #a1a1aa; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; flex: 1; font-size: 12px; }
+  .tab-btn.active { background: #fd5e09; color: white; border-color: #ea580c; }
+  
+  .footer-lema { text-align: center; color: #fd5e09; font-weight: bold; font-size: 13px; margin-top: 20px; text-transform: uppercase; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+
+<button class="btn-fullscreen" onclick="toggleFS()" title="Maximizar">⛶</button>
+
+<div class="logo-container">
+  <img src="./icono.png" class="logo-img" alt="Bayonas VitalGym">
+  <div class="header-actions-left">
+    <label class="btn-link" style="cursor:pointer;">
+      🎬 VÍDEOS
+      <input type="file" id="videoFolderInput" webkitdirectory directory multiple style="display:none" onchange="loadVideoFolder(event)">
+    </label>
+  </div>
+  <div class="header-actions-right">
+    <button class="btn btn-exit" onclick="exitAndSave()" style="width:auto; padding:6px 10px; font-size:12px;">🚪 Salir</button>
+  </div>
+</div>
+
+<div class="card sticky-player" id="mainPlayerCard" style="padding: 8px 10px; margin-bottom: 10px;">
+  <div style="display: flex; align-items: center; gap: 6px; width: 100%; margin-bottom: 4px; overflow: hidden;">
+    <span style="font-size: 16px; flex-shrink: 0;">🎵</span>
+    <div class="marquee-container">
+      <span class="marquee-text" id="songTitle">Reproductor de Música</span>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:center; justify-content: space-between; gap: 8px; margin-bottom: 6px; background: rgba(5,2,1,0.6); padding: 4px 8px; border-radius: 8px; border: 1px solid #7c2d12;">
+    <span style="font-size:11px; color:#a1a1aa; font-weight: bold;">Volumen:</span>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)" style="flex: 1; accent-color: #fd5e09; cursor: pointer; height: 4px;">
+  </div>
+
+  <div class="player-btn-grid">
+    <button type="button" class="btn-link" onclick="prevTrack()" title="Anterior">⏮️</button>
+    <button type="button" class="btn-link" id="playPauseBtn" onclick="togglePlayMusic()">▶ Play</button>
+    <button type="button" class="btn-link" onclick="nextTrack()" title="Siguiente">⏭️</button>
+    <label class="btn-link" style="margin:0; cursor:pointer;" title="Cargar carpeta de música">
+      📁 MÚSICA
+      <input type="file" id="audioFolderInput" webkitdirectory directory multiple style="display:none" onchange="loadAudioFolder(event)">
+    </label>
+  </div>
+
+  <div style="display:flex; align-items:center; gap: 6px; margin-top: 6px; background: rgba(5,2,1,0.6); padding: 4px 8px; border-radius: 8px; border: 1px solid #7c2d12;">
+    <span id="currentTimeDisplay" style="font-size:11px; color:#a1a1aa; font-weight:bold; font-family:monospace;">00:00</span>
+    <input type="range" id="seekSlider" min="0" max="100" value="0" oninput="seekTrack(this.value)" style="flex: 1; accent-color: #22c55e; cursor: pointer; height: 4px;">
+    <span id="durationDisplay" style="font-size:11px; color:#a1a1aa; font-weight:bold; font-family:monospace;">00:00</span>
+  </div>
+
+  <audio id="audioPlayer" style="display:none;"></audio>
+</div>
+
+<div class="card">
+  <div style="display: flex; gap: 6px;">
+    <div style="flex: 1.05;">
+      <label>Fecha</label>
+      <input type="date" id="sessionDate">
+    </div>
+    <div style="flex: 1.95;">
+      <label>Día de Entreno</label>
+      <select id="daySelect" onchange="renderExercises()">
+        <option value="">-- Seleccionar Día --</option>
+        <option value="1">DÍA 1 - Hombros, Dorsal, Pectoral, Abdomen</option>
+        <option value="2">DÍA 2 - Piernas, Femoral, Bíceps, Tríceps</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div id="exercisesContainer">
+  <p style="text-align:center; color:#a1a1aa; padding: 24px;">👆 Selecciona un bloque de entreno para desplegar las rutinas.</p>
+</div>
+
+<div style="display: flex; gap: 10px; margin-top: 18px;">
+  <button class="btn btn-save" onclick="saveData(true)" style="flex: 1.5;">💾 Guardar Sesión</button>
+  <button class="btn" onclick="toggleModal(true)" style="flex: 1;">📊 Historial / Progreso</button>
+</div>
+
+<div class="footer-lema">ENTRENA • MEJORA • EVOLUCIONA</div>
+
+<div id="historyModal" class="modal">
+  <div class="modal-content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h2 style="margin:0; font-size:16px; color:#fd5e09;">📊 Historial y Progreso</h2>
+      <button onclick="toggleModal(false)" style="background:none; border:none; color:#ea580c; font-size:22px; cursor:pointer;">✕</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<script>
+var db;
+function initDB() {
+  var request = indexedDB.open("VitalGymProDB", 1);
+  request.onupgradeneeded = function(e) {
+    var database = e.target.result;
+    if (!database.objectStoreNames.contains("videos")) database.createObjectStore("videos");
+    if (!database.objectStoreNames.contains("audios")) database.createObjectStore("audios");
+  };
+  request.onsuccess = function(e) {
+    db = e.target.result;
+    loadStoredAudios();
+  };
+}
+initDB();
+
+var baseRoutines = {
+  "1": [
+    { id: "d1_warmup", name: "Bici Elíptica (Calentamiento)", target: "1 serie x 5 min.", defaultWeight: 0, defaultReps: "5m", isEliptica: true },
+    { id: "d1_e1", name: "1. Press militar o elevaciones", target: "4 series x 12 rep.", defaultWeight: 15, defaultReps: "12", restSecs: 90 },
+    { id: "d1_e2", name: "2. Elevaciones laterales con mancuernas", target: "4 series x 12 rep.", defaultWeight: 10, defaultReps: "12", restSecs: 60 },
+    { id: "d1_e3", name: "3. Contractor / Aperturas máquina", target: "4 series x 12 rep.", defaultWeight: 45, defaultReps: "12", restSecs: 90 },
+    { id: "d1_e4", name: "4. Jalón al pecho en polea", target: "4 series x 12 rep.", defaultWeight: 50, defaultReps: "12", restSecs: 90 },
+    { id: "d1_e5", name: "5. Remo sentado en polea baja", target: "4 series x 12 rep.", defaultWeight: 55, defaultReps: "12", restSecs: 90 },
+    { id: "d1_e6", name: "6. Remo inclinado con palancas", target: "4 series x 12 rep.", defaultWeight: 40, defaultReps: "12", restSecs: 90 },
+    { id: "d1_e7", name: "7. Press inclinado con mancuernas", target: "4 series x 12 rep.", defaultWeight: 22, defaultReps: "12", restSecs: 90 },
+    { id: "d1_e8", name: "8. Press de pecho en máquina", target: "4 series x 12 rep.", defaultWeight: 60, defaultReps: "12", restSecs: 90 },
+    { id: "d1_e9", name: "9. Hiperextensiones lumbares", target: "3 series x 10 rep.", defaultWeight: 0, defaultReps: "10", restSecs: 60 },
+    { id: "d1_e10", name: "10. Encogimientos / Abdomen", target: "3 series x 20 seg", defaultWeight: 0, defaultReps: "20s", restSecs: 60 },
+    { id: "d1_cooldown", name: "Bici Elíptica (Vuelta a la calma)", target: "Opcional (5-30 min)", defaultWeight: 0, defaultReps: "10m", isElipticaCooldown: true }
+  ],
+  "2": [
+    { id: "d2_warmup", name: "Bici Elíptica (Calentamiento)", target: "1 serie x 10 min.", defaultWeight: 0, defaultReps: "10m", isEliptica: true },
+    { id: "d2_e1", name: "1. Prensa horizontal / inclinada", target: "4 series x 12 rep.", defaultWeight: 100, defaultReps: "12", restSecs: 120 },
+    { id: "d2_e2", name: "2. Extensión de cuadriceps en máquina", target: "4 series x 12 rep.", defaultWeight: 50, defaultReps: "12", restSecs: 90 },
+    { id: "d2_e3", name: "3. Femoral tumbado", target: "4 series x 12 rep.", defaultWeight: 40, defaultReps: "12", restSecs: 90 },
+    { id: "d2_e4", name: "4. Gemelos / Aductores en máquina", target: "4 series x 12 rep.", defaultWeight: 45, defaultReps: "12", restSecs: 60 },
+    { id: "d2_e5", name: "5. Curl de bíceps con mancuernas alterno", target: "4 series x 12 rep.", defaultWeight: 12, defaultReps: "12", restSecs: 90 },
+    { id: "d2_e6", name: "6. Curl Scott predicador en máquina", target: "4 series x 12 rep.", defaultWeight: 25, defaultReps: "12", restSecs: 90 },
+    { id: "d2_e7", name: "7. Extensión de tríceps en polea alta", target: "4 series x 12 rep.", defaultWeight: 30, defaultReps: "12", restSecs: 90 },
+    { id: "d2_e8", name: "8. Curl con barra Z / Cuerda", target: "4 series x 12 rep.", defaultWeight: 20, defaultReps: "12", restSecs: 90 },
+    { id: "d2_cooldown", name: "Bici Elíptica (Vuelta a la calma)", target: "Opcional (5-30 min)", defaultWeight: 0, defaultReps: "10m", isElipticaCooldown: true }
+  ]
+};
+
+var appData = { history: [] };
+var exerciseStates = {};
+var timerInterval = null;
+var playlist = [];
+var currentTrackIndex = 0;
+var isPlaying = false;
+
+function loadAppData() {
+  try {
+    var saved = localStorage.getItem('gym_routine_pro_data');
+    if (saved) appData = JSON.parse(saved);
+    if (!appData.history) appData.history = [];
+  } catch(e){}
+}
+
+function setTodayDate() {
+  var dateInput = document.getElementById('sessionDate');
+  if (dateInput) {
+    var today = new Date();
+    var yyyy = today.getFullYear();
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var dd = String(today.getDate()).padStart(2, '0');
+    dateInput.value = yyyy + '-' + mm + '-' + dd;
+  }
+}
+
+function parseTargetSeries(targetStr) {
+  var match = targetStr ? targetStr.match(/(\d+)\s*series/i) : null;
+  return match ? parseInt(match[1], 10) : 4;
+}
+
+function formatTime(seconds) {
+  var mins = Math.floor(seconds / 60);
+  var secs = seconds % 60;
+  return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+}
+
+function scrollCardToPlayer(exId) {
+  var card = document.getElementById('card_' + exId);
+  var player = document.getElementById('mainPlayerCard');
+  if (card) {
+    var playerHeight = player ? player.offsetHeight : 120;
+    var cardPosition = card.getBoundingClientRect().top + window.pageYOffset;
+    var offsetPosition = cardPosition - playerHeight - 8;
+    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+  }
+}
+
+function renderExercises() {
+  var daySelect = document.getElementById('daySelect');
+  var container = document.getElementById('exercisesContainer');
+  if (!daySelect || !container) return;
+  
+  var currentDay = daySelect.value;
+  container.innerHTML = '';
+  
+  if (!currentDay || !baseRoutines[currentDay]) {
+    container.innerHTML = '<p style="text-align:center; color:#a1a1aa; padding: 24px;">👆 Selecciona un bloque de entreno para desplegar las rutinas.</p>';
+    return;
+  }
+  
+  var exercises = baseRoutines[currentDay];
+  var lastSession = { data: {} };
+  for (var i = appData.history.length - 1; i >= 0; i--) {
+    if (String(appData.history[i].day) === String(currentDay)) {
+      lastSession = appData.history[i];
+      break;
+    }
+  }
+
+  for (var j = 0; j < exercises.length; j++) {
+    var ex = exercises[j];
+    var exData = (lastSession.data && lastSession.data[ex.id]) ? lastSession.data[ex.id] : { weight: ex.defaultWeight, reps: ex.defaultReps, notes: '' };
+    var totalTargetSeries = parseTargetSeries(ex.target);
+
+    if (!exerciseStates[ex.id]) {
+      exerciseStates[ex.id] = {
+        currentSeries: 1,
+        totalSeries: totalTargetSeries,
+        completedSeries: 0,
+        restSecs: ex.restSecs || 90,
+        isWorking: false,
+        isResting: false,
+        workSecs: 0,
+        countdownSecs: 0,
+        completedTimes: []
+      };
+    }
+
+    var st = exerciseStates[ex.id];
+
+    var card = document.createElement('div');
+    card.className = "card";
+    card.id = "card_" + ex.id;
+    
+    var html = '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px;">';
+    html += '<div style="flex:1; padding-right:6px;"><strong style="font-size:16px; color:#fd5e09;">' + ex.name + '</strong>';
+    
+    if (ex.isEliptica || ex.isElipticaCooldown) {
+      html += '<div style="font-size:12px; color:#f59e0b; font-weight:700;">' + ex.target + '</div></div>';
+      html += '</div>';
+      html += '<div style="margin-top:10px;"><button type="button" class="btn btn-save" onclick="startWorkSeries(\'' + ex.id + '\')">⏱️ Iniciar Bici Elíptica</button></div>';
+    } else {
+      html += '<div style="font-size:12px; color:#f59e0b; font-weight:700;">' + ex.target + ' <span style="color:#38bdf8;">(' + st.restSecs + 's)</span></div></div>';
+      html += '<div style="display:flex; gap:4px; align-items:center;">';
+      html += '<button type="button" class="btn-series-trigger" id="btnSeries_' + ex.id + '" onclick="startWorkSeries(\'' + ex.id + '\')">⏱️ Iniciar Serie ' + st.currentSeries + '/' + st.totalSeries + '</button>';
+      html += '<button type="button" class="btn-link" onclick="playStoredVideo(\'' + ex.id + '\')">▶ Vídeo</button>';
+      html += '</div>';
+      html += '</div>';
+
+      html += '<div class="badge-series-status" id="badgeSeries_' + ex.id + '">Series: ' + st.completedSeries + '/' + st.totalSeries + '</div>';
+
+      html += '<div class="grid">';
+      html += '<div><label>Peso (kg)</label><div class="counter">';
+      html += '<button type="button" onclick="adjustVal(\'' + ex.id + '_weight\', -2.5)">-</button>';
+      html += '<input type="number" step="0.5" id="' + ex.id + '_weight" value="' + (exData.weight !== undefined ? exData.weight : ex.defaultWeight) + '">';
+      html += '<button type="button" onclick="adjustVal(\'' + ex.id + '_weight\', 2.5)">+</button>';
+      html += '</div></div>';
+      html += '<div><label>Reps / Series</label><input type="text" id="' + ex.id + '_reps" value="' + (exData.reps || ex.defaultReps) + '"></div>';
+      html += '</div>';
+
+      html += '<div style="margin-top:8px;"><label>Notas / Tiempos</label><input type="text" id="' + ex.id + '_notes" value="' + (exData.notes || '') + '"></div>';
+    }
+
+    html += '<div class="card-timer-box" id="timerBox_' + ex.id + '">';
+    html += '<div style="font-size:12px; font-weight:800; color:#38bdf8; text-transform:uppercase;" id="timerTitle_' + ex.id + '">SERIE ' + st.currentSeries + ' EN CURSO</div>';
+    html += '<div class="card-timer-clock" id="timerClock_' + ex.id + '">00:00</div>';
+    html += '<div style="display:flex; gap:6px; width:100%; margin-top:4px;">';
+    html += '<button type="button" class="btn btn-save" id="timerActionBtn_' + ex.id + '" onclick="handleTimerAction(\'' + ex.id + '\')" style="padding:8px; font-size:13px; flex:1;">Finalizar Serie ' + st.currentSeries + '</button>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div class="inline-video-wrapper" id="' + ex.id + '_videoWrapper"><video id="' + ex.id + '_video" controls loop playsinline></video></div>';
+
+    card.innerHTML = html;
+    container.appendChild(card);
+  }
+}
+
+function adjustVal(inputId, amount) {
+  var el = document.getElementById(inputId);
+  if (!el) return;
+  var val = parseFloat(el.value) || 0;
+  el.value = Math.max(0, val + amount);
+}
+
+function startWorkSeries(exId) {
+  var st = exerciseStates[exId];
+  if (!st) return;
+
+  scrollCardToPlayer(exId);
+
+  if (timerInterval) clearInterval(timerInterval);
+
+  st.isWorking = true;
+  st.isResting = false;
+  st.workSecs = 0;
+
+  var timerBox = document.getElementById('timerBox_' + exId);
+  var timerTitle = document.getElementById('timerTitle_' + exId);
+  var timerClock = document.getElementById('timerClock_' + exId);
+  var actionBtn = document.getElementById('timerActionBtn_' + exId);
+  var btnSeries = document.getElementById('btnSeries_' + exId);
+
+  if (timerBox) timerBox.style.display = 'flex';
+  if (timerTitle) { timerTitle.textContent = "SERIE " + st.currentSeries + " EN CURSO"; timerTitle.style.color = "#38bdf8"; }
+  if (timerClock) { timerClock.textContent = "00:00"; timerClock.style.color = "#22c55e"; }
+  if (actionBtn) actionBtn.textContent = "Finalizar Serie " + st.currentSeries;
+  if (btnSeries) { btnSeries.textContent = "⏳ Ejecutando Serie " + st.currentSeries; btnSeries.style.borderColor = "#22c55e"; }
+
+  timerInterval = setInterval(function() {
+    st.workSecs++;
+    if (timerClock) timerClock.textContent = formatTime(st.workSecs);
+  }, 1000);
+}
+
+function handleTimerAction(exId) {
+  var st = exerciseStates[exId];
+  if (!st) return;
+
+  if (st.isWorking) {
+    st.isWorking = false;
+    st.isResting = true;
+    st.completedSeries += 1;
+    st.countdownSecs = st.restSecs;
+    st.completedTimes.push("S" + st.currentSeries + ": " + formatTime(st.workSecs));
+
+    var notesEl = document.getElementById(exId + '_notes');
+    if (notesEl) notesEl.value = st.completedTimes.join(" | ");
+
+    var badge = document.getElementById('badgeSeries_' + exId);
+    if (badge) badge.textContent = "Series: " + st.completedSeries + "/" + st.totalSeries;
+
+    if (timerInterval) clearInterval(timerInterval);
+
+    var timerTitle = document.getElementById('timerTitle_' + exId);
+    var timerClock = document.getElementById('timerClock_' + exId);
+    var actionBtn = document.getElementById('timerActionBtn_' + exId);
+
+    if (timerTitle) { timerTitle.textContent = "DESCANSO EN CURSO"; timerTitle.style.color = "#f59e0b"; }
+    if (timerClock) { timerClock.textContent = formatTime(st.countdownSecs); timerClock.style.color = "#38bdf8"; }
+    if (actionBtn) actionBtn.textContent = "Omitir Descanso";
+
+    timerInterval = setInterval(function() {
+      if (st.countdownSecs > 0) {
+        st.countdownSecs--;
+        if (timerClock) timerClock.textContent = formatTime(st.countdownSecs);
+      } else {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        finishRestPhase(exId);
+      }
+    }, 1000);
+  } else if (st.isResting) {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = null;
+    finishRestPhase(exId);
+  }
+}
+
+function finishRestPhase(exId) {
+  var st = exerciseStates[exId];
+  if (!st) return;
+
+  st.isResting = false;
+  var timerBox = document.getElementById('timerBox_' + exId);
+  if (timerBox) timerBox.style.display = 'none';
+
+  if (st.currentSeries < st.totalSeries) {
+    st.currentSeries += 1;
+    var btnSeries = document.getElementById('btnSeries_' + exId);
+    if (btnSeries) {
+      btnSeries.textContent = "⏱️ Iniciar Serie " + st.currentSeries + "/" + st.totalSeries;
+      btnSeries.style.borderColor = "#fd5e09";
+    }
+  } else {
+    var btnSeries = document.getElementById('btnSeries_' + exId);
+    if (btnSeries) {
+      btnSeries.textContent = "✅ Completado";
+      btnSeries.style.borderColor = "#22c55e";
+    }
+    triggerNextExerciseRest(exId);
+  }
+}
+
+function triggerNextExerciseRest(currentExId) {
+  var currentDay = document.getElementById('daySelect').value;
+  if (!currentDay || !baseRoutines[currentDay]) return;
+  var exercises = baseRoutines[currentDay];
+  var currentIndex = -1;
+  for (var i = 0; i < exercises.length; i++) {
+    if (exercises[i].id === currentExId) {
+      currentIndex = i;
+      break;
+    }
+  }
+
+  saveData(false);
+
+  if (currentIndex !== -1 && currentIndex + 1 < exercises.length) {
+    var nextEx = exercises[currentIndex + 1];
+    scrollCardToPlayer(nextEx.id);
+    
+    var nextSt = exerciseStates[nextEx.id];
+    if (nextSt && !nextEx.isEliptica && !nextEx.isElipticaCooldown) {
+      startInterExerciseRestInCard(nextEx.id);
+    }
+  }
+}
+
+function startInterExerciseRestInCard(exId) {
+  var st = exerciseStates[exId];
+  if (!st) return;
+
+  if (timerInterval) clearInterval(timerInterval);
+
+  st.isWorking = false;
+  st.isResting = true;
+  st.countdownSecs = st.restSecs;
+
+  var timerBox = document.getElementById('timerBox_' + exId);
+  var timerTitle = document.getElementById('timerTitle_' + exId);
+  var timerClock = document.getElementById('timerClock_' + exId);
+  var actionBtn = document.getElementById('timerActionBtn_' + exId);
+
+  if (timerBox) timerBox.style.display = 'flex';
+  if (timerTitle) { timerTitle.textContent = "DESCANSO ENTRE EJERCICIOS"; timerTitle.style.color = "#38bdf8"; }
+  if (timerClock) { timerClock.textContent = formatTime(st.countdownSecs); timerClock.style.color = "#38bdf8"; }
+  if (actionBtn) actionBtn.textContent = "Iniciar Serie 1/" + st.totalSeries;
+
+  timerInterval = setInterval(function() {
+    if (st.countdownSecs > 0) {
+      st.countdownSecs--;
+      if (timerClock) timerClock.textContent = formatTime(st.countdownSecs);
+    } else {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      if (timerBox) timerBox.style.display = 'none';
+      startWorkSeries(exId);
+    }
+  }, 1000);
+}
+
+function loadVideoFolder(e) {
+  var files = Array.from(e.target.files).filter(f => f.type.startsWith('video/'));
+  if (files.length === 0) return alert("Sin vídeos válidos.");
+  var tx = db.transaction("videos", "readwrite");
+  var store = tx.objectStore("videos");
+  files.forEach(f => {
+    var key = f.name.toLowerCase().replace(/\.[^/.]+$/, "");
+    store.put(f, key);
+  });
+  tx.oncomplete = function() {
+    alert("¡Vídeos importados y guardados correctamente!");
+    renderExercises();
+  };
+}
+
+function playStoredVideo(exId) {
+  scrollCardToPlayer(exId);
+  var tx = db.transaction("videos", "readonly");
+  var store = tx.objectStore("videos");
+  var request = store.openCursor();
+  var found = false;
+
+  request.onsuccess = function(e) {
+    var cursor = e.target.result;
+    if (cursor) {
+      if (cursor.key.includes(exId.toLowerCase())) {
+        found = true;
+        var blob = cursor.value;
+        var url = URL.createObjectURL(blob);
+        var wrapper = document.getElementById(exId + '_videoWrapper');
+        var video = document.getElementById(exId + '_video');
+        if (wrapper && video) {
+          wrapper.style.display = wrapper.style.display === 'block' ? 'none' : 'block';
+          video.src = url;
+          if (wrapper.style.display === 'block') video.play();
+        }
+      } else {
+        cursor.continue();
+      }
+    }
+    if (!cursor && !found) {
+      alert("No se encontró ningún vídeo asignado para este ejercicio en IndexedDB.");
+    }
+  };
+}
+
+function loadAudioFolder(e) {
+  var files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/') || f.name.match(/\.(mp3|wav|ogg|m4a)$/i));
+  if (files.length === 0) return alert("Sin archivos de audio.");
+  playlist = files;
+  currentTrackIndex = 0;
+
+  var tx = db.transaction("audios", "readwrite");
+  var store = tx.objectStore("audios");
+  store.clear();
+  files.forEach((f, idx) => store.put(f, idx));
+
+  playTrack(0);
+}
+
+function loadStoredAudios() {
+  if (!db) return;
+  var tx = db.transaction("audios", "readonly");
+  var store = tx.objectStore("audios");
+  var request = store.getAll();
+  request.onsuccess = function() {
+    if (request.result && request.result.length > 0) {
+      playlist = request.result;
+      currentTrackIndex = 0;
+      document.getElementById('songTitle').textContent = playlist[0].name.replace(/\.[^/.]+$/, "");
+    }
+  };
+}
+
+function playTrack(idx) {
+  var player = document.getElementById('audioPlayer');
+  if (!player || !playlist[idx]) return;
+  var audioFile = playlist[idx];
+  player.src = URL.createObjectURL(audioFile);
+  document.getElementById('songTitle').textContent = audioFile.name.replace(/\.[^/.]+$/, "");
+  player.play();
+  isPlaying = true;
+  document.getElementById('playPauseBtn').textContent = "⏸ Pause";
+}
+
+function togglePlayMusic() {
+  var player = document.getElementById('audioPlayer');
+  if (!player.src) return;
+  if (isPlaying) { player.pause(); isPlaying = false; document.getElementById('playPauseBtn').textContent = "▶ Play"; }
+  else { player.play(); isPlaying = true; document.getElementById('playPauseBtn').textContent = "⏸ Pause"; }
+}
+
+function prevTrack() {
+  if (playlist.length === 0) return;
+  currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+  playTrack(currentTrackIndex);
+}
+
+function nextTrack() {
+  if (playlist.length === 0) return;
+  currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+  playTrack(currentTrackIndex);
+}
+
+function changeVolume(val) {
+  var player = document.getElementById('audioPlayer');
+  if (player) player.volume = val;
+}
+
+function seekTrack(val) {
+  var player = document.getElementById('audioPlayer');
+  if (player && player.duration) {
+    player.currentTime = (val / 100) * player.duration;
+  }
+}
+
+function saveData(showAlert) {
+  var daySelect = document.getElementById('daySelect');
+  if (!daySelect) return false;
+  var currentDay = daySelect.value;
+  if (!currentDay) { 
+    if (showAlert) alert("Por favor, selecciona primero un Día de Entreno."); 
+    return false; 
+  }
+
+  var date = document.getElementById('sessionDate').value;
+  var exercises = baseRoutines[currentDay] || [];
+  var sessionData = {};
+
+  for (var k = 0; k < exercises.length; k++) {
+    var ex = exercises[k];
+    var weightEl = document.getElementById(ex.id + '_weight');
+    var repsEl = document.getElementById(ex.id + '_reps');
+    var notesEl = document.getElementById(ex.id + '_notes');
+    sessionData[ex.id] = {
+      weight: weightEl ? weightEl.value : '',
+      reps: repsEl ? repsEl.value : '',
+      notes: notesEl ? notesEl.value : '',
+      name: ex.name,
+      exId: ex.id
+    };
+  }
+
+  appData.history.push({ date: date, day: currentDay, data: sessionData });
+  localStorage.setItem('gym_routine_pro_data', JSON.stringify(appData));
+  if (showAlert) alert("¡Sesión guardada con éxito!");
+  return true;
+}
+
+function exitAndSave() {
+  saveData(false);
+  alert("Sesión guardada automáticamente.");
+}
+
+function toggleModal(show) {
+  var modal = document.getElementById('historyModal');
+  if (modal) modal.style.display = show ? 'flex' : 'none';
+  if (show) loadHistoryModal();
+}
+
+function loadHistoryModal() {
+  var container = document.getElementById('historyList');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!appData.history || appData.history.length === 0) {
+    container.innerHTML = '<p style="font-size:13px; color:#a1a1aa; text-align:center;">No hay sesiones guardadas aún.</p>';
+    return;
+  }
+
+  var reversed = appData.history.slice().reverse();
+  for (var r = 0; r < reversed.length; r++) {
+    var s = reversed[r];
+    var item = document.createElement('div');
+    item.style.cssText = 'background:#050201; padding:10px; border-radius:10px; border:1px solid #7c2d12; margin-bottom:10px; font-size:12px;';
+    
+    var exercisesHtml = '';
+    var keys = Object.keys(s.data);
+    for (var k = 0; k < keys.length; k++) {
+      var d = s.data[keys[k]];
+      if (d.weight) {
+        exercisesHtml += '<div style="display:flex; justify-content:space-between; margin-bottom:4px; border-bottom:1px solid #1f0f04; padding-bottom:2px;">';
+        exercisesHtml += '<span style="font-weight:600; color:#f8fafc;">' + d.name + '</span>';
+        exercisesHtml += '<span style="color:#fd5e09; font-weight:bold;">' + d.weight + ' kg (' + (d.reps || 'reps N/A') + ')</span>';
+        exercisesHtml += '</div>';
+        if (d.notes) {
+          exercisesHtml += '<div style="font-size:11px; color:#38bdf8; margin-bottom:4px;">⏱ ' + d.notes + '</div>';
+        }
+      }
+    }
+
+    item.innerHTML = '<div style="font-weight:bold; color:#f59e0b; font-size:13px; margin-bottom:6px;">📅 ' + s.date + ' - Día ' + s.day + '</div><div>' + exercisesHtml + '</div>';
+    container.appendChild(item);
+  }
+}
+
+function toggleFS() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else if (document.exitFullscreen) document.exitFullscreen();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadAppData();
+  setTodayDate();
+
+  var player = document.getElementById('audioPlayer');
+  if (player) {
+    player.addEventListener('timeupdate', function() {
+      if (player.duration) {
+        var seekSlider = document.getElementById('seekSlider');
+        var currentTimeDisplay = document.getElementById('currentTimeDisplay');
+        var durationDisplay = document.getElementById('durationDisplay');
+        
+        if (seekSlider) seekSlider.value = (player.currentTime / player.duration) * 100;
+        if (currentTimeDisplay) currentTimeDisplay.textContent = formatTime(Math.floor(player.currentTime));
+        if (durationDisplay) durationDisplay.textContent = formatTime(Math.floor(player.duration));
+      }
+    });
+
+    player.addEventListener('ended', function() {
+      nextTrack();
+    });
+  }
+});
+</script>
+</body>
+</html>
